@@ -1,0 +1,1264 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Create an EC2 instance with Prometheus and Grafana",
+	"Metadata": {
+		"AWS::CloudFormation::Interface": {
+			"ParameterGroups": [
+				{
+					"Label": {
+						"default": "Network Configuration"
+					},
+					"Parameters": [
+						"VPC",
+						"Subnet"
+					]
+				},
+				{
+					"Label": {
+						"default": "Amazon EMR Configuration"
+					},
+					"Parameters": [
+						"EMRClusterName",
+						"MasterInstanceType",
+						"CoreInstanceType",
+						"CoreInstanceCount",
+						"EMRSSHIPRange",
+						"EMRKeyName",
+						"EMRReleaseLabel"
+					]
+				},
+				{
+					"Label": {
+						"default": "Amazon EC2 Configuration"
+					},
+					"Parameters": [
+						"InstanceType",
+						"KeyName",
+						"SSHIPRange"
+					]
+				},
+				{
+					"Label": {
+						"default": "User Interfaces Network Ingress Access"
+					},
+					"Parameters": [
+						"GrafanaIPRange",
+						"PrometheusUIIPRange"
+					]
+				},
+				{
+					"Label": {
+						"default": "Alerts from Prometheus"
+					},
+					"Parameters": [
+						"EmailAddress"
+					]
+				}
+			],
+			"ParameterLabels": {
+				"VPC": {
+					"default": "Which VPC should this be deployed to?"
+				}
+			}
+		}
+	},
+	"Parameters": {
+		"KeyName": {
+			"Description": "Name of an existing EC2 KeyPair to enable SSH access to the instance",
+			"Type": "AWS::EC2::KeyPair::KeyName",
+			"ConstraintDescription": "must be the name of an existing EC2 KeyPair."
+		},
+		"InstanceType": {
+			"Description": "EC2 instance type",
+			"Type": "String",
+			"Default": "t3.small",
+			"AllowedValues": [
+				"a1.medium",
+				"a1.large",
+				"a1.xlarge",
+				"a1.2xlarge",
+				"a1.4xlarge",
+				"a1.metal",
+				"c1.medium",
+				"c1.xlarge",
+				"c3.large",
+				"c3.xlarge",
+				"c3.2xlarge",
+				"c3.4xlarge",
+				"c3.8xlarge",
+				"c4.large",
+				"c4.xlarge",
+				"c4.2xlarge",
+				"c4.4xlarge",
+				"c4.8xlarge",
+				"c5.large",
+				"c5.xlarge",
+				"c5.2xlarge",
+				"c5.4xlarge",
+				"c5.9xlarge",
+				"c5.12xlarge",
+				"c5.18xlarge",
+				"c5.24xlarge",
+				"c5.metal",
+				"c5d.large",
+				"c5d.xlarge",
+				"c5d.2xlarge",
+				"c5d.4xlarge",
+				"c5d.9xlarge",
+				"c5d.12xlarge",
+				"c5d.18xlarge",
+				"c5d.24xlarge",
+				"c5d.metal",
+				"c5n.large",
+				"c5n.xlarge",
+				"c5n.2xlarge",
+				"c5n.4xlarge",
+				"c5n.9xlarge",
+				"c5n.18xlarge",
+				"cc1.4xlarge",
+				"cc2.8xlarge",
+				"cg1.4xlarge",
+				"cr1.8xlarge",
+				"d2.xlarge",
+				"d2.2xlarge",
+				"d2.4xlarge",
+				"d2.8xlarge",
+				"f1.2xlarge",
+				"f1.4xlarge",
+				"f1.16xlarge",
+				"h1.2xlarge",
+				"h1.4xlarge",
+				"h1.8xlarge",
+				"h1.16xlarge",
+				"hs1.8xlarge",
+				"i2.xlarge",
+				"i2.2xlarge",
+				"i2.4xlarge",
+				"i2.8xlarge",
+				"i3.large",
+				"i3.xlarge",
+				"i3.2xlarge",
+				"i3.4xlarge",
+				"i3.8xlarge",
+				"i3.16xlarge",
+				"i3.metal",
+				"i3en.large",
+				"i3en.xlarge",
+				"i3en.2xlarge",
+				"i3en.3xlarge",
+				"i3en.6xlarge",
+				"i3en.12xlarge",
+				"i3en.24xlarge",
+				"i3en.metal",
+				"m1.large",
+				"inf1.xlarge",
+				"inf1.2xlarge",
+				"inf1.6xlarge",
+				"inf1.24xlarge",
+				"m1.small",
+				"m1.medium",
+				"m1.xlarge",
+				"m2.xlarge",
+				"m2.2xlarge",
+				"m2.4xlarge",
+				"m3.medium",
+				"m3.large",
+				"m3.xlarge",
+				"m3.2xlarge",
+				"m4.large",
+				"m4.xlarge",
+				"m4.2xlarge",
+				"m4.4xlarge",
+				"m4.10xlarge",
+				"m4.16xlarge",
+				"m5.large",
+				"m5.xlarge",
+				"m5.2xlarge",
+				"m5.4xlarge",
+				"m5.8xlarge",
+				"m5.12xlarge",
+				"m5.16xlarge",
+				"m5.24xlarge",
+				"m5.metal",
+				"m5a.large",
+				"m5a.xlarge",
+				"m5a.2xlarge",
+				"m5a.4xlarge",
+				"m5a.8xlarge",
+				"m5a.12xlarge",
+				"m5a.16xlarge",
+				"m5a.24xlarge",
+				"m5ad.large",
+				"m5ad.xlarge",
+				"m5ad.2xlarge",
+				"m5ad.4xlarge",
+				"m5ad.8xlarge",
+				"m5ad.12xlarge",
+				"m5ad.16xlarge",
+				"m5ad.24xlarge",
+				"m5d.large",
+				"m5d.xlarge",
+				"m5d.2xlarge",
+				"m5d.4xlarge",
+				"m5d.8xlarge",
+				"m5d.12xlarge",
+				"m5d.16xlarge",
+				"m5d.24xlarge",
+				"m5d.metal",
+				"m5dn.large",
+				"m5dn.xlarge",
+				"m5dn.2xlarge",
+				"m5dn.4xlarge",
+				"m5dn.8xlarge",
+				"m5dn.12xlarge",
+				"m5dn.16xlarge",
+				"m5dn.24xlarge",
+				"m5n.large",
+				"m5n.xlarge",
+				"m5n.2xlarge",
+				"m5n.4xlarge",
+				"m5n.8xlarge",
+				"m5n.12xlarge",
+				"m5n.16xlarge",
+				"m5n.24xlarge",
+				"m6g.medium",
+				"m6g.large",
+				"m6g.xlarge",
+				"m6g.2xlarge",
+				"m6g.4xlarge",
+				"m6g.8xlarge",
+				"m6g.12xlarge",
+				"m6g.16xlarge",
+				"m6g.metal",
+				"p2.xlarge",
+				"p2.8xlarge",
+				"p2.16xlarge",
+				"p3.2xlarge",
+				"p3.8xlarge",
+				"p3.16xlarge",
+				"p3dn.24xlarge",
+				"r3.large",
+				"r3.xlarge",
+				"r3.2xlarge",
+				"r3.4xlarge",
+				"r3.8xlarge",
+				"r4.large",
+				"r4.xlarge",
+				"r4.2xlarge",
+				"r4.4xlarge",
+				"r4.8xlarge",
+				"r4.16xlarge",
+				"r5.large",
+				"r5.xlarge",
+				"r5.2xlarge",
+				"r5.4xlarge",
+				"r5.8xlarge",
+				"r5.12xlarge",
+				"r5.16xlarge",
+				"r5.24xlarge",
+				"r5.metal",
+				"r5a.large",
+				"r5a.xlarge",
+				"r5a.2xlarge",
+				"r5a.4xlarge",
+				"r5a.8xlarge",
+				"r5a.12xlarge",
+				"r5a.16xlarge",
+				"r5a.24xlarge",
+				"r5ad.large",
+				"r5ad.xlarge",
+				"r5ad.2xlarge",
+				"r5ad.4xlarge",
+				"r5ad.8xlarge",
+				"r5ad.12xlarge",
+				"r5ad.16xlarge",
+				"r5ad.24xlarge",
+				"r5d.large",
+				"r5d.xlarge",
+				"r5d.2xlarge",
+				"r5d.4xlarge",
+				"r5d.8xlarge",
+				"r5d.12xlarge",
+				"r5d.16xlarge",
+				"r5d.24xlarge",
+				"r5d.metal",
+				"r5dn.large",
+				"r5dn.xlarge",
+				"r5dn.2xlarge",
+				"r5dn.4xlarge",
+				"r5dn.8xlarge",
+				"r5dn.12xlarge",
+				"r5dn.16xlarge",
+				"r5dn.24xlarge",
+				"r5n.large",
+				"r5n.xlarge",
+				"r5n.2xlarge",
+				"r5n.4xlarge",
+				"r5n.8xlarge",
+				"r5n.12xlarge",
+				"r5n.16xlarge",
+				"r5n.24xlarge",
+				"t1.micro",
+				"t2.nano",
+				"t2.micro",
+				"t2.small",
+				"t2.medium",
+				"t2.large",
+				"t2.xlarge",
+				"t2.2xlarge",
+				"t3.nano",
+				"t3.micro",
+				"t3.small",
+				"t3.medium",
+				"t3.large",
+				"t3a.large",
+				"t3.xlarge",
+				"t3.2xlarge",
+				"t3a.nano",
+				"t3a.micro",
+				"t3a.small",
+				"t3a.medium",
+				"t3a.xlarge",
+				"t3a.2xlarge",
+				"u-6tb1.metal",
+				"u-9tb1.metal",
+				"u-12tb1.metal",
+				"u-18tb1.metal",
+				"u-24tb1.metal",
+				"x1.16xlarge",
+				"x1.32xlarge",
+				"x1e.xlarge",
+				"x1e.2xlarge",
+				"x1e.4xlarge",
+				"x1e.8xlarge",
+				"z1d.12xlarge",
+				"x1e.16xlarge",
+				"x1e.32xlarge",
+				"z1d.large",
+				"z1d.xlarge",
+				"z1d.2xlarge",
+				"z1d.3xlarge",
+				"z1d.6xlarge",
+				"z1d.metal"
+			],
+			"ConstraintDescription": "must be a valid EC2 instance type."
+		},
+		"VPC": {
+			"Description": "VPC (MUST be an existing public VPC)",
+			"Type": "AWS::EC2::VPC::Id",
+			"ConstraintDescription": "must be an existing public VPC."
+		},
+		"Subnet": {
+			"Description": "Subnet (MUST be a subnet within the selected VPC)",
+			"Type": "AWS::EC2::Subnet::Id",
+			"ConstraintDescription": "must be a subnet within the selected VPC."
+		},
+		"SSHIPRange": {
+			"Description": "The IP address range in CIDR notation (eg. <your ip address>/32) that can be used to SSH to the EC2 instances. If you want to grant access to your local computer's public IPv4 address, you can go to https://checkip.amazonaws.com/ or run 'curl https://checkip.amazonaws.com/' in the terminal. WARNING: Rules with source of 0.0.0.0/0 allow all IP addresses to access your instance. We recommend setting security group rules to allow access from known IP addresses only.",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+		},
+		"GrafanaIPRange": {
+			"Description": "The IP address range in CIDR notation (eg. <your ip address>/32) that can be used to access the Grafana dashboards on port 3000. If you want to grant access to your local computer's public IPv4 address, you can go to https://checkip.amazonaws.com/ or run 'curl https://checkip.amazonaws.com/' in the terminal. WARNING: Rules with source of 0.0.0.0/0 allow all IP addresses to access the dashboards. We recommend setting security group rules to allow access from known IP addresses only.",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+		},
+		"PrometheusUIIPRange": {
+			"Description": "The IP address range in CIDR notation (eg. <your ip address>/32) that can be used to access the Prometheus UI on port 9090. If you want to grant access to your local computer's public IPv4 address, you can go to https://checkip.amazonaws.com/ or run 'curl https://checkip.amazonaws.com/' in the terminal. WARNING: Rules with source of 0.0.0.0/0 allow all IP addresses to access the UI. We recommend setting security group rules to allow access from known IP addresses only.",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+		},
+		"EmailAddress": {
+			"Description": "The email address that you use to subscribe to alerts from Prometheus. You will be asked to confirm this subscription via an email message from Amazon Simple Notification Service.",
+			"Type": "String",
+			"MinLength": "3",
+			"MaxLength": "320",
+			"ConstraintDescription": "must be a valid email address."
+		},
+		"EMRClusterName": {
+			"Default": "emrPrometheusBlog",
+			"Description": "Name of the Amazon EMR cluster.",
+			"Type": "String"
+		},
+		"MasterInstanceType": {
+			"Default": "m5.xlarge",
+			"Description": "Instance Type of the Master node",
+			"Type": "String",
+			"AllowedValues": [
+				"c1.medium",
+				"c1.xlarge",
+				"c3.2xlarge",
+				"c3.4xlarge",
+				"c3.8xlarge",
+				"c3.xlarge",
+				"c4.large",
+				"c4.xlarge",
+				"c4.2xlarge",
+				"c4.4xlarge",
+				"c4.8xlarge",
+				"c5.xlarge",
+				"c5.2xlarge",
+				"c5.4xlarge",
+				"c5.9xlarge",
+				"c5.12xlarge",
+				"c5.18xlarge",
+				"c5.24xlarge",
+				"c5d.xlarge",
+				"c5d.2xlarge",
+				"c5d.4xlarge",
+				"c5d.9xlarge",
+				"c5d.12xlarge",
+				"c5d.18xlarge",
+				"c5d.24xlarge",
+				"c5n.xlarge",
+				"c5n.2xlarge",
+				"c5n.4xlarge",
+				"c5n.9xlarge",
+				"c5n.18xlarge",
+				"cc2.8xlarge",
+				"cr1.8xlarge",
+				"d2.xlarge",
+				"d2.2xlarge",
+				"d2.4xlarge",
+				"d2.8xlarge",
+				"h1.2xlarge",
+				"h1.4xlarge",
+				"h1.8xlarge",
+				"h1.16xlarge",
+				"hs1.8xlarge",
+				"i2.xlarge",
+				"i2.2xlarge",
+				"i2.4xlarge",
+				"i2.8xlarge",
+				"i3.xlarge",
+				"i3.2xlarge",
+				"i3.4xlarge",
+				"i3.8xlarge",
+				"i3.16xlarge",
+				"i3en.xlarge",
+				"i3en.2xlarge",
+				"i3en.3xlarge",
+				"i3en.6xlarge",
+				"i3en.12xlarge",
+				"i3en.24xlarge",
+				"m1.large",
+				"m1.xlarge",
+				"m2.xlarge",
+				"m2.2xlarge",
+				"m2.4xlarge",
+				"m3.xlarge",
+				"m3.2xlarge",
+				"m4.large",
+				"m4.xlarge",
+				"m4.2xlarge",
+				"m4.4xlarge",
+				"m4.10xlarge",
+				"m4.16xlarge",
+				"m5.xlarge",
+				"m5.2xlarge",
+				"m5.4xlarge",
+				"m5.8xlarge",
+				"m5.12xlarge",
+				"m5.16xlarge",
+				"m5.24xlarge",
+				"m5a.xlarge",
+				"m5a.2xlarge",
+				"m5a.4xlarge",
+				"m5a.8xlarge",
+				"m5a.12xlarge",
+				"m5a.16xlarge",
+				"m5a.24xlarge",
+				"m5d.xlarge",
+				"m5d.2xlarge",
+				"m5d.4xlarge",
+				"m5d.8xlarge",
+				"m5d.12xlarge",
+				"m5d.16xlarge",
+				"m5d.24xlarge",
+				"p2.xlarge",
+				"p2.8xlarge",
+				"p2.16xlarge",
+				"p3.2xlarge",
+				"p3.8xlarge",
+				"p3.16xlarge",
+				"r3.xlarge",
+				"r3.2xlarge",
+				"r3.4xlarge",
+				"r3.8xlarge",
+				"r4.xlarge",
+				"r4.2xlarge",
+				"r4.4xlarge",
+				"r4.8xlarge",
+				"r4.16xlarge",
+				"r5.xlarge",
+				"r5.2xlarge",
+				"r5.4xlarge",
+				"r5.8xlarge",
+				"r5.12xlarge",
+				"r5.16xlarge",
+				"r5.24xlarge",
+				"r5a.xlarge",
+				"r5a.2xlarge",
+				"r5a.4xlarge",
+				"r5a.8xlarge",
+				"r5a.12xlarge",
+				"r5a.16xlarge",
+				"r5a.24xlarge",
+				"r5d.xlarge",
+				"r5d.2xlarge",
+				"r5d.4xlarge",
+				"r5d.8xlarge",
+				"r5d.12xlarge",
+				"r5d.16xlarge",
+				"r5d.24xlarge",
+				"z1d.xlarge",
+				"z1d.2xlarge",
+				"z1d.3xlarge",
+				"z1d.6xlarge",
+				"z1d.12xlarge"
+			]
+		},
+		"CoreInstanceType": {
+			"Default": "m5.xlarge",
+			"Description": "Instance Type of the Core node.",
+			"Type": "String",
+			"AllowedValues": [
+				"c1.medium",
+				"c1.xlarge",
+				"c3.2xlarge",
+				"c3.4xlarge",
+				"c3.8xlarge",
+				"c3.xlarge",
+				"c4.large",
+				"c4.xlarge",
+				"c4.2xlarge",
+				"c4.4xlarge",
+				"c4.8xlarge",
+				"c5.xlarge",
+				"c5.2xlarge",
+				"c5.4xlarge",
+				"c5.9xlarge",
+				"c5.12xlarge",
+				"c5.18xlarge",
+				"c5.24xlarge",
+				"c5d.xlarge",
+				"c5d.2xlarge",
+				"c5d.4xlarge",
+				"c5d.9xlarge",
+				"c5d.12xlarge",
+				"c5d.18xlarge",
+				"c5d.24xlarge",
+				"c5n.xlarge",
+				"c5n.2xlarge",
+				"c5n.4xlarge",
+				"c5n.9xlarge",
+				"c5n.18xlarge",
+				"cc2.8xlarge",
+				"cr1.8xlarge",
+				"d2.xlarge",
+				"d2.2xlarge",
+				"d2.4xlarge",
+				"d2.8xlarge",
+				"h1.2xlarge",
+				"h1.4xlarge",
+				"h1.8xlarge",
+				"h1.16xlarge",
+				"hs1.8xlarge",
+				"i2.xlarge",
+				"i2.2xlarge",
+				"i2.4xlarge",
+				"i2.8xlarge",
+				"i3.xlarge",
+				"i3.2xlarge",
+				"i3.4xlarge",
+				"i3.8xlarge",
+				"i3.16xlarge",
+				"i3en.xlarge",
+				"i3en.2xlarge",
+				"i3en.3xlarge",
+				"i3en.6xlarge",
+				"i3en.12xlarge",
+				"i3en.24xlarge",
+				"m1.large",
+				"m1.xlarge",
+				"m2.xlarge",
+				"m2.2xlarge",
+				"m2.4xlarge",
+				"m3.xlarge",
+				"m3.2xlarge",
+				"m4.large",
+				"m4.xlarge",
+				"m4.2xlarge",
+				"m4.4xlarge",
+				"m4.10xlarge",
+				"m4.16xlarge",
+				"m5.xlarge",
+				"m5.2xlarge",
+				"m5.4xlarge",
+				"m5.8xlarge",
+				"m5.12xlarge",
+				"m5.16xlarge",
+				"m5.24xlarge",
+				"m5a.xlarge",
+				"m5a.2xlarge",
+				"m5a.4xlarge",
+				"m5a.8xlarge",
+				"m5a.12xlarge",
+				"m5a.16xlarge",
+				"m5a.24xlarge",
+				"m5d.xlarge",
+				"m5d.2xlarge",
+				"m5d.4xlarge",
+				"m5d.8xlarge",
+				"m5d.12xlarge",
+				"m5d.16xlarge",
+				"m5d.24xlarge",
+				"p2.xlarge",
+				"p2.8xlarge",
+				"p2.16xlarge",
+				"p3.2xlarge",
+				"p3.8xlarge",
+				"p3.16xlarge",
+				"r3.xlarge",
+				"r3.2xlarge",
+				"r3.4xlarge",
+				"r3.8xlarge",
+				"r4.xlarge",
+				"r4.2xlarge",
+				"r4.4xlarge",
+				"r4.8xlarge",
+				"r4.16xlarge",
+				"r5.xlarge",
+				"r5.2xlarge",
+				"r5.4xlarge",
+				"r5.8xlarge",
+				"r5.12xlarge",
+				"r5.16xlarge",
+				"r5.24xlarge",
+				"r5a.xlarge",
+				"r5a.2xlarge",
+				"r5a.4xlarge",
+				"r5a.8xlarge",
+				"r5a.12xlarge",
+				"r5a.16xlarge",
+				"r5a.24xlarge",
+				"r5d.xlarge",
+				"r5d.2xlarge",
+				"r5d.4xlarge",
+				"r5d.8xlarge",
+				"r5d.12xlarge",
+				"r5d.16xlarge",
+				"r5d.24xlarge",
+				"z1d.xlarge",
+				"z1d.2xlarge",
+				"z1d.3xlarge",
+				"z1d.6xlarge",
+				"z1d.12xlarge"
+			]
+		},
+		"CoreInstanceCount": {
+			"Default": "2",
+			"Description": "Number of Core instances.",
+			"Type": "Number"
+		},
+		"EMRSSHIPRange": {
+			"Description": "The IP address range in CIDR notation (eg. <your ip address>/32) that can be used to SSH to the master node of the Amazon EMR cluster. If you want to grant access to your local computer's public IPv4 address, you can go to https://checkip.amazonaws.com/ or run 'curl https://checkip.amazonaws.com/' in the terminal. WARNING: Rules with source of 0.0.0.0/0 allow all IP addresses to access your instance. We recommend setting security group rules to allow access from known IP addresses only.",
+			"Type": "String",
+			"MinLength": "9",
+			"MaxLength": "18",
+			"AllowedPattern": "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})",
+			"ConstraintDescription": "must be a valid IP CIDR range of the form x.x.x.x/x."
+		},
+		"EMRKeyName": {
+			"Description": "Name of an existing EC2 KeyPair to enable SSH to the Master, Core and/or Task nodes in the Amazon EMR cluster.",
+			"Type": "AWS::EC2::KeyPair::KeyName"
+		},
+		"EMRReleaseLabel": {
+			"Description": "Amazon EMR Version",
+			"AllowedValues": [
+				"emr-5.30.1",
+				"emr-6.0.0"
+			],
+			"Type": "String",
+			"Default": "emr-6.0.0"
+		}
+	},
+	"Mappings": {
+		"AWSRegionArch2AMI": {
+			"us-east-1": {
+				"HVM64": "ami-0323c3dd2da7fb37d"
+			},
+			"us-east-2": {
+				"HVM64": "ami-0f7919c33c90f5b58"
+			},
+			"us-west-1": {
+				"HVM64": "ami-06fcc1f0bc2c8943f"
+			},
+			"us-west-2": {
+				"HVM64": "ami-0d6621c01e8c2de2c"
+			},
+			"eu-central-1": {
+				"HVM64": "ami-076431be05aaf8080"
+			},
+			"eu-west-1": {
+				"HVM64": "ami-06ce3edf0cff21f07"
+			},
+			"eu-west-2": {
+				"HVM64": "ami-01a6e31ac994bbc09"
+			},
+			"eu-west-3": {
+				"HVM64": "ami-00077e3fed5089981"
+			},
+			"eu-north-1": {
+				"HVM64": "ami-0b7a46b4bd694e8a6"
+			},
+			"sa-east-1": {
+				"HVM64": "ami-003449ffb2605a74c"
+			},
+			"ap-south-1": {
+				"HVM64": "ami-0470e33cd681b2476"
+			},
+			"ap-northeast-1": {
+				"HVM64": "ami-0f310fced6141e627"
+			},
+			"ap-northeast-2": {
+				"HVM64": "ami-01288945bd24ed49a"
+			},
+			"ap-northeast-3": {
+				"HVM64": "ami-028238ef8d1df506f"
+			},
+			"ap-southeast-1": {
+				"HVM64": "ami-0ec225b5e01ccb706"
+			},
+			"ap-southeast-2": {
+				"HVM64": "ami-0970010f37c4f9c8d"
+			},
+			"ca-central-1": {
+				"HVM64": "ami-054362537f5132ce2"
+			}
+		}
+	},
+	"Resources": {
+		"EMRStack": {
+			"Type": "AWS::CloudFormation::Stack",
+			"Properties": {
+				"TemplateURL": "https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/cloudformation_templates/emrClusterforPrometheusBlog.json",
+				"Parameters": {
+					"EMRClusterName": {
+						"Ref": "EMRClusterName"
+					},
+					"EMRSubnet": {
+						"Ref": "Subnet"
+					},
+					"MasterInstanceType": {
+						"Ref": "MasterInstanceType"
+					},
+					"CoreInstanceType": {
+						"Ref": "CoreInstanceType"
+					},
+					"CoreInstanceCount": {
+						"Ref": "CoreInstanceCount"
+					},
+					"EMRKeyName": {
+						"Ref": "EMRKeyName"
+					},
+					"EMRReleaseLabel": {
+						"Ref": "EMRReleaseLabel"
+					},
+					"EMRMasterAdditionalSGId": {
+						"Ref": "EMRMasterSecurityGroup"
+					},
+					"EMRSlaveAdditionalSGId": {
+						"Ref": "EMRSlaveSecurityGroup"
+					}
+				}
+			},
+			"DependsOn": [
+				"EMRMasterSecurityGroup",
+				"EMRSlaveSecurityGroup"
+			]
+		},
+		"IAMStack": {
+			"Type": "AWS::CloudFormation::Stack",
+			"Properties": {
+				"TemplateURL": "https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/cloudformation_templates/IamForPrometheus.json"
+			}
+		},
+		"EMRMasterSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Additional security group for master node in the Amazon EMR cluster.",
+				"SecurityGroupEgress": [
+					{
+						"CidrIp": "127.0.0.1/32",
+						"IpProtocol": "-1"
+					}
+				],
+				"VpcId": {
+					"Ref": "VPC"
+				}
+			}
+		},
+		"EMRSlaveSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Additional security group for slave nodes in the Amazon EMR cluster.",
+				"SecurityGroupEgress": [
+					{
+						"CidrIp": "127.0.0.1/32",
+						"IpProtocol": "-1"
+					}
+				],
+				"VpcId": {
+					"Ref": "VPC"
+				}
+			}
+		},
+		"InboundRuleForMaster7001": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Fn::GetAtt": [
+						"EMRMasterSecurityGroup",
+						"GroupId"
+					]
+				},
+				"SourceSecurityGroupId": {
+					"Fn::GetAtt": [
+						"PrometheusServerSecurityGroup",
+						"GroupId"
+					]
+				},
+				"IpProtocol": "tcp",
+				"FromPort": 7001,
+				"ToPort": 7001
+			},
+			"DependsOn": [
+				"EMRMasterSecurityGroup",
+				"PrometheusServerSecurityGroup"
+			]
+		},
+		"InboundRuleForSlave7001": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Fn::GetAtt": [
+						"EMRSlaveSecurityGroup",
+						"GroupId"
+					]
+				},
+				"SourceSecurityGroupId": {
+					"Fn::GetAtt": [
+						"PrometheusServerSecurityGroup",
+						"GroupId"
+					]
+				},
+				"IpProtocol": "tcp",
+				"FromPort": 7001,
+				"ToPort": 7001
+			},
+			"DependsOn": [
+				"EMRSlaveSecurityGroup",
+				"PrometheusServerSecurityGroup"
+			]
+		},
+		"InboundRuleForMaster7005": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Fn::GetAtt": [
+						"EMRMasterSecurityGroup",
+						"GroupId"
+					]
+				},
+				"SourceSecurityGroupId": {
+					"Fn::GetAtt": [
+						"PrometheusServerSecurityGroup",
+						"GroupId"
+					]
+				},
+				"IpProtocol": "tcp",
+				"FromPort": 7005,
+				"ToPort": 7005
+			},
+			"DependsOn": [
+				"EMRMasterSecurityGroup",
+				"PrometheusServerSecurityGroup"
+			]
+		},
+		"InboundRuleForSlave7005": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Fn::GetAtt": [
+						"EMRSlaveSecurityGroup",
+						"GroupId"
+					]
+				},
+				"SourceSecurityGroupId": {
+					"Fn::GetAtt": [
+						"PrometheusServerSecurityGroup",
+						"GroupId"
+					]
+				},
+				"IpProtocol": "tcp",
+				"FromPort": 7005,
+				"ToPort": 7005
+			},
+			"DependsOn": [
+				"EMRSlaveSecurityGroup",
+				"PrometheusServerSecurityGroup"
+			]
+		},
+		"InboundRuleForMaster9100": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Fn::GetAtt": [
+						"EMRMasterSecurityGroup",
+						"GroupId"
+					]
+				},
+				"SourceSecurityGroupId": {
+					"Fn::GetAtt": [
+						"PrometheusServerSecurityGroup",
+						"GroupId"
+					]
+				},
+				"IpProtocol": "tcp",
+				"FromPort": 9100,
+				"ToPort": 9100
+			},
+			"DependsOn": [
+				"EMRMasterSecurityGroup",
+				"PrometheusServerSecurityGroup"
+			]
+		},
+		"InboundRuleForSlave9100": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Fn::GetAtt": [
+						"EMRSlaveSecurityGroup",
+						"GroupId"
+					]
+				},
+				"SourceSecurityGroupId": {
+					"Fn::GetAtt": [
+						"PrometheusServerSecurityGroup",
+						"GroupId"
+					]
+				},
+				"IpProtocol": "tcp",
+				"FromPort": 9100,
+				"ToPort": 9100
+			},
+			"DependsOn": [
+				"EMRSlaveSecurityGroup",
+				"PrometheusServerSecurityGroup"
+			]
+		},
+		"InboundRuleForMaster22": {
+			"Type": "AWS::EC2::SecurityGroupIngress",
+			"Properties": {
+				"GroupId": {
+					"Fn::GetAtt": [
+						"EMRMasterSecurityGroup",
+						"GroupId"
+					]
+				},
+				"CidrIp": {
+					"Ref": "EMRSSHIPRange"
+				},
+				"IpProtocol": "tcp",
+				"FromPort": 22,
+				"ToPort": 22
+			},
+			"DependsOn": [
+				"EMRMasterSecurityGroup",
+				"PrometheusServerSecurityGroup"
+			]
+		},
+		"PrometheusServerSecurityGroup": {
+			"Type": "AWS::EC2::SecurityGroup",
+			"Properties": {
+				"GroupDescription": "Enable Grafana UI, Prometheus UI and SSH Ports",
+				"VpcId": {
+					"Ref": "VPC"
+				},
+				"SecurityGroupIngress": [
+					{
+						"IpProtocol": "tcp",
+						"FromPort": "3000",
+						"ToPort": "3000",
+						"CidrIp": {
+							"Ref": "GrafanaIPRange"
+						}
+					},
+					{
+						"IpProtocol": "tcp",
+						"FromPort": "9090",
+						"ToPort": "9090",
+						"CidrIp": {
+							"Ref": "PrometheusUIIPRange"
+						}
+					},
+					{
+						"IpProtocol": "tcp",
+						"FromPort": "22",
+						"ToPort": "22",
+						"CidrIp": {
+							"Ref": "SSHIPRange"
+						}
+					}
+				]
+			}
+		},
+		"SNSStack": {
+			"Type": "AWS::CloudFormation::Stack",
+			"Properties": {
+				"TemplateURL": "https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/cloudformation_templates/SNSForPrometheus.json",
+				"Parameters": {
+					"EmailAddress": {
+						"Ref": "EmailAddress"
+					}
+				}
+			}
+		},
+		"PrometheusServerInstance": {
+			"Type": "AWS::EC2::Instance",
+			"Metadata": {
+				"AWS::CloudFormation::Init": {
+					"configSets": {
+						"install_all": [
+							"install_cfn",
+							"install_prometheus",
+							"install_sns_forwarder",
+							"install_alertmanager",
+							"install_grafana"
+						]
+					},
+					"install_cfn": {
+						"files": {
+							"/tmp/install_prometheus": {
+								"content": {
+									"Fn::Join": [
+										"",
+										[
+											"#!/bin/bash -xe\n",
+											"cd /tmp\n",
+											"wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/scripts/setup-prometheus.sh\n",
+											"sudo chmod +x setup-prometheus.sh\n",
+											"/tmp/setup-prometheus.sh\n"
+										]
+									]
+								},
+								"mode": "000500",
+								"owner": "root",
+								"group": "root"
+							},
+							"/tmp/install_sns_forwarder": {
+								"content": {
+									"Fn::Join": [
+										"",
+										[
+											"#!/bin/bash -xe\n",
+											"cd /tmp\n",
+											"wget https://odp-hyeonsup-meterials.s3.ap-northeast-2.amazonaws.com/script/setup-alertmanager-sns-forwarder-fixed.sh\n",
+											"sudo chmod +x setup-alertmanager-sns-forwarder-fixed.sh\n",
+											"/tmp/setup-alertmanager-sns-forwarder-fixed.sh\n"
+										]
+									]
+								},
+								"mode": "000500",
+								"owner": "root",
+								"group": "root"
+							},
+							"/tmp/install_alertmanager": {
+								"content": {
+									"Fn::Join": [
+										"",
+										[
+											"#!/bin/bash -xe\n",
+											"cd /tmp\n",
+											"wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/scripts/setup-alertmanager.sh\n",
+											"sudo chmod +x setup-alertmanager.sh\n",
+											"/tmp/setup-alertmanager.sh\n"
+										]
+									]
+								},
+								"mode": "000500",
+								"owner": "root",
+								"group": "root"
+							},
+							"/tmp/install_grafana": {
+								"content": {
+									"Fn::Join": [
+										"",
+										[
+											"#!/bin/bash -xe\n",
+											"cd /tmp\n",
+											"wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/scripts/setup-grafana.sh\n",
+											"sudo chmod +x setup-grafana.sh\n",
+											"/tmp/setup-grafana.sh\n"
+										]
+									]
+								},
+								"mode": "000500",
+								"owner": "root",
+								"group": "root"
+							}
+						}
+					},
+					"install_prometheus": {
+						"commands": {
+							"01_install": {
+								"command": "/tmp/install_prometheus"
+							}
+						}
+					},
+					"install_sns_forwarder": {
+						"commands": {
+							"01_install": {
+								"command": "/tmp/install_sns_forwarder"
+							}
+						}
+					},
+					"install_alertmanager": {
+						"commands": {
+							"01_install": {
+								"command": "/tmp/install_alertmanager"
+							}
+						}
+					},
+					"install_grafana": {
+						"commands": {
+							"01_install": {
+								"command": "/tmp/install_grafana"
+							}
+						}
+					}
+				}
+			},
+			"Properties": {
+				"ImageId": {
+					"Fn::FindInMap": [
+						"AWSRegionArch2AMI",
+						{
+							"Ref": "AWS::Region"
+						},
+						"HVM64"
+					]
+				},
+				"InstanceType": {
+					"Ref": "InstanceType"
+				},
+				"SecurityGroupIds": [
+					{
+						"Fn::GetAtt": [
+							"PrometheusServerSecurityGroup",
+							"GroupId"
+						]
+					}
+				],
+				"IamInstanceProfile": "Prometheus",
+				"KeyName": {
+					"Ref": "KeyName"
+				},
+				"SubnetId": {
+					"Ref": "Subnet"
+				},
+				"UserData": {
+					"Fn::Base64": {
+						"Fn::Join": [
+							"",
+							[
+								"#!/bin/bash -xe\n",
+								"yum update -y aws-cfn-bootstrap\n",
+								"/opt/aws/bin/cfn-init -v ",
+								"         --stack ",
+								{
+									"Ref": "AWS::StackName"
+								},
+								"         --resource PrometheusServerInstance ",
+								"         --configsets install_all ",
+								"         --region ",
+								{
+									"Ref": "AWS::Region"
+								},
+								"\n",
+								"/opt/aws/bin/cfn-signal -e $? ",
+								"         --stack ",
+								{
+									"Ref": "AWS::StackName"
+								},
+								"         --resource PrometheusServerInstance ",
+								"         --region ",
+								{
+									"Ref": "AWS::Region"
+								},
+								"\n"
+							]
+						]
+					}
+				}
+			},
+			"DependsOn": [
+				"PrometheusServerSecurityGroup",
+				"IAMStack"
+			],
+			"CreationPolicy": {
+				"ResourceSignal": {
+					"Timeout": "PT15M"
+				}
+			}
+		}
+	},
+	"Outputs": {
+		"WebsiteURL": {
+			"Description": "URL for newly created Grafana dashboard. Default login and password are both 'admin'. You will be asked to change the password on first login.",
+			"Value": {
+				"Fn::Join": [
+					"",
+					[
+						"http://",
+						{
+							"Fn::GetAtt": [
+								"PrometheusServerInstance",
+								"PublicDnsName"
+							]
+						},
+						":3000"
+					]
+				]
+			}
+		},
+		"ClusterId": {
+			"Description": "The ID of the Amazon EMR cluster created.",
+			"Value": {
+				"Fn::GetAtt": [
+					"EMRStack",
+					"Outputs.ClusterID"
+				]
+			}
+		},
+		"MasterPublicDnsName": {
+			"Description": "The public DNS name of the master node of the Amazon EMR cluster.",
+			"Value": {
+				"Fn::GetAtt": [
+					"EMRStack",
+					"Outputs.MasterPublicDnsName"
+				]
+			}
+		}
+	}
+}
