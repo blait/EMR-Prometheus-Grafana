@@ -9,7 +9,7 @@ IS_HADOOP_INSTALLED=$(echo "${APPLICATIONS_INSTALLED}" | grep "Hadoop" || true);
 
 if [ ! -z $IS_HADOOP_INSTALLED ]; then
   cd /tmp;
-  wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/scripts/yarn_jmx_env_setup.txt;
+  wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/emr-scripts/yarn_jmx_env_setup.txt;
   cat /tmp/yarn_jmx_env_setup.txt | sudo tee -a /etc/hadoop/conf/yarn-env.sh > /dev/null;
   if [ ! -z $IS_MASTER ]; then
     sudo systemctl restart hadoop-yarn-resourcemanager.service;

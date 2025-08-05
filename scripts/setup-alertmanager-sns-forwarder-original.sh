@@ -7,17 +7,17 @@ sudo mkdir /var/lib/sns-forwarder
 sudo chown -R sns-forwarder:sns-forwarder /etc/sns-forwarder
 sudo chown sns-forwarder:sns-forwarder /var/lib/sns-forwarder
 cd /tmp
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/alertmanager/alertmanager-sns-forwarder
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/alertmanager-sns-forwarder/alertmanager-sns-forwarder
 sudo chmod +x alertmanager-sns-forwarder
 sudo cp alertmanager-sns-forwarder /usr/local/bin/
 sudo chown sns-forwarder:sns-forwarder /usr/local/bin/alertmanager-sns-forwarder
 
 #configure SNS Forwarder as a service
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/alertmanager/default.tmpl
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/alertmanager-sns-forwarder/default.tmpl
 sudo cp default.tmpl /etc/sns-forwarder/conf/default.tmpl
 sudo chown sns-forwarder:sns-forwarder /etc/sns-forwarder/conf/default.tmpl
 
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/service_files/alertmanager-sns-forwarder.service
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/service-files/alertmanager-sns-forwarder.service
 EC2_AVAIL_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
 EC2_REGION="`echo \"$EC2_AVAIL_ZONE\" | sed 's/[a-z]$//'`"
 ACCOUNT_ID=`curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | grep -oP '(?<="accountId" : ")[^"]*(?=")'`

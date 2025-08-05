@@ -1,0 +1,15 @@
+[Unit]
+Description=Sns-forwarder
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+User=sns-forwarder
+Group=sns-forwarder
+Type=simple
+ExecStart=/usr/local/bin/alertmanager-sns-forwarder --addr localhost:9087 --arn-prefix <arn_prefix> --template-path /etc/sns-forwarder/conf/default.tmpl --sns-subject "Prometheus Alert"
+
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
