@@ -1,0 +1,31 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Create a SNS topic and subscribe an email to it",
+	"Parameters": {
+		"EmailAddress": {
+			"Type": "String",
+			"Description": "Email address where the alert notification from Prometheus should go to."
+		}
+	},
+	"Resources": {
+		"PrometheusTopic": {
+			"Type": "AWS::SNS::Topic",
+			"Properties": {
+				"TopicName": "Prometheus"
+			}
+		},
+
+		"PrometheusSubscription": {
+			"Type": "AWS::SNS::Subscription",
+			"Properties": {
+				"Endpoint": {
+					"Ref": "EmailAddress"
+				},
+				"Protocol": "email",
+				"TopicArn": {
+					"Ref": "PrometheusTopic"
+				}
+			}
+		}
+	}
+}

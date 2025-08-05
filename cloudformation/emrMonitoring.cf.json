@@ -751,7 +751,7 @@
 		"EMRStack": {
 			"Type": "AWS::CloudFormation::Stack",
 			"Properties": {
-				"TemplateURL": "https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/cloudformation_templates/emrClusterforPrometheusBlog.json",
+				"TemplateURL": "https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/cloudformation/emrClusterforPrometheusBlog.json",
 				"Parameters": {
 					"EMRClusterName": {
 						"Ref": "EMRClusterName"
@@ -790,7 +790,7 @@
 		"IAMStack": {
 			"Type": "AWS::CloudFormation::Stack",
 			"Properties": {
-				"TemplateURL": "https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/cloudformation_templates/IamForPrometheus.json"
+				"TemplateURL": "https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/cloudformation/IamForPrometheus.json"
 			}
 		},
 		"EMRMasterSecurityGroup": {
@@ -1026,7 +1026,7 @@
 		"SNSStack": {
 			"Type": "AWS::CloudFormation::Stack",
 			"Properties": {
-				"TemplateURL": "https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/cloudformation_templates/SNSForPrometheus.json",
+				"TemplateURL": "https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/cloudformation/SNSForPrometheus.json",
 				"Parameters": {
 					"EmailAddress": {
 						"Ref": "EmailAddress"
@@ -1056,7 +1056,7 @@
 										[
 											"#!/bin/bash -xe\n",
 											"cd /tmp\n",
-											"wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/scripts/setup-prometheus.sh\n",
+											"wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/scripts/setup-prometheus.sh\n",
 											"sudo chmod +x setup-prometheus.sh\n",
 											"/tmp/setup-prometheus.sh\n"
 										]
@@ -1090,7 +1090,7 @@
 										[
 											"#!/bin/bash -xe\n",
 											"cd /tmp\n",
-											"wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/scripts/setup-alertmanager.sh\n",
+											"wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/scripts/setup-alertmanager.sh\n",
 											"sudo chmod +x setup-alertmanager.sh\n",
 											"/tmp/setup-alertmanager.sh\n"
 										]
@@ -1107,7 +1107,7 @@
 										[
 											"#!/bin/bash -xe\n",
 											"cd /tmp\n",
-											"wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/scripts/setup-grafana.sh\n",
+											"wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/scripts/setup-grafana.sh\n",
 											"sudo chmod +x setup-grafana.sh\n",
 											"/tmp/setup-grafana.sh\n"
 										]

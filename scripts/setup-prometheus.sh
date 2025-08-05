@@ -21,8 +21,8 @@ sudo chown -R prometheus:prometheus /etc/prometheus/console_libraries
 
 #configure Prometheus as a service
 cd /tmp
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/prometheus/prometheus.yml
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/prometheus/rules.yml
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/prometheus/prometheus.yml
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/prometheus/rules.yml
 EC2_AVAIL_ZONE=`curl -s http://169.254.169.254/latest/meta-data/placement/availability-zone`
 EC2_REGION="`echo \"$EC2_AVAIL_ZONE\" | sed 's/[a-z]$//'`"
 sudo sed "s/us-west-2/${EC2_REGION}/g" prometheus.yml | sudo tee /etc/prometheus/conf/prometheus.yml
@@ -30,7 +30,7 @@ sudo cp rules.yml /etc/prometheus/conf/rules.yml
 sudo chown prometheus:prometheus /etc/prometheus/conf/prometheus.yml
 sudo chown prometheus:prometheus /etc/prometheus/conf/rules.yml
 
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/service_files/prometheus.service
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/service-files/prometheus.service
 sudo cp prometheus.service /etc/systemd/system/prometheus.service
 sudo chown prometheus:prometheus /etc/systemd/system/prometheus.service
 sudo mkdir -p /var/lib/prometheus

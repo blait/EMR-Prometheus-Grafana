@@ -17,11 +17,11 @@ sudo chown alertmanager:alertmanager /usr/local/bin/amtool
 
 #configure Alertmanager as a service
 cd /tmp
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/alertmanager/alertmanager.yml
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/alertmanager/alertmanager.yml
 sudo cp alertmanager.yml /etc/alertmanager/conf/alertmanager.yml
 sudo chown alertmanager:alertmanager /etc/alertmanager/conf/alertmanager.yml
 
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/service_files/alertmanager.service
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/service-files/alertmanager.service
 sudo cp alertmanager.service /etc/systemd/system/alertmanager.service
 sudo chown alertmanager:alertmanager /etc/systemd/system/alertmanager.service
 sudo systemctl daemon-reload

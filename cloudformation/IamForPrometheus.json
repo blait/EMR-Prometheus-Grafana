@@ -1,0 +1,57 @@
+{
+	"AWSTemplateFormatVersion": "2010-09-09",
+	"Description": "Create an Instance Profile to associate with Prometheus and Grafana servers.",
+	"Resources": {
+		"PrometheusIAMRole": {
+			"Type": "AWS::IAM::Role",
+			"Properties": {
+                "RoleName": "Promethus",
+				"AssumeRolePolicyDocument": {
+					"Statement": [{
+						"Effect": "Allow",
+						"Principal": {
+							"Service": ["ec2.amazonaws.com"]
+						},
+						"Action": ["sts:AssumeRole"]
+					}]
+				}
+			}
+		},
+
+		"PrometheusIAMInstanceProfile": {
+			"Type": "AWS::IAM::InstanceProfile",
+			"Properties": {
+                "InstanceProfileName": "Prometheus",
+				"Roles": [{
+					"Ref": "PrometheusIAMRole"
+				}]
+			},
+            "DependsOn": ["PrometheusIAMRole"]
+		},
+
+		"PrometheusEc2DiscoveryAndSnsAlert": {
+			"Type": "AWS::IAM::Policy",
+			"Properties": {
+				"PolicyName": "PrometheusEc2DiscoveryAndSnsAlert",
+				"PolicyDocument": {
+					"Statement": [{
+							"Effect": "Allow",
+							"Action": "ec2:DescribeInstances",
+							"Resource": "*"
+						},
+						{
+							"Effect": "Allow",
+							"Action": "sns:Publish",
+							"Resource": "arn:aws:sns:*:*:Prometheus"
+						}
+					]
+
+				},
+				"Roles": [{
+					"Ref": "PrometheusIAMRole"
+				}]
+			},
+            "DependsOn": ["PrometheusIAMRole"]
+		}
+	}
+}

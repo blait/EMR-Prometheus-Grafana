@@ -77,7 +77,7 @@
 					{
 						"Name": "Configure cluster",
 						"ScriptBootstrapAction": {
-							"Path": "s3://aws-bigdata-blog/artifacts/aws-blog-emr-prometheus-grafana/scripts/bootstrap_monitoring_6_series.sh"
+							"Path": "s3://odp-hyeonsup-meterials/emr-monitoring/scripts/bootstrap_monitoring_6_series.sh"
 						}
 					}
 				],

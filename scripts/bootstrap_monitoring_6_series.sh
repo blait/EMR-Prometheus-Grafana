@@ -10,7 +10,7 @@ sudo cp node_exporter /usr/local/bin/
 sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
 cd /tmp
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/service_files/node_exporter.service
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/service-files/node_exporter.service
 sudo cp node_exporter.service /etc/systemd/system/node_exporter.service
 sudo chown node_exporter:node_exporter /etc/systemd/system/node_exporter.service
 sudo systemctl daemon-reload && \
@@ -23,10 +23,10 @@ wget https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_javaagent/0
 sudo mkdir /etc/prometheus
 sudo cp jmx_prometheus_javaagent-0.13.0.jar /etc/prometheus
 
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/jmx_exporter_yaml/hdfs_jmx_config_namenode.yaml
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/jmx_exporter_yaml/hdfs_jmx_config_datanode.yaml
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/jmx_exporter_yaml/yarn_jmx_config_resource_manager.yaml
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/jmx_exporter_yaml/yarn_jmx_config_node_manager.yaml
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/jmx-exporter/hdfs_jmx_config_namenode.yaml
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/jmx-exporter/hdfs_jmx_config_datanode.yaml
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/jmx-exporter/yarn_jmx_config_resource_manager.yaml
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/config/jmx-exporter/yarn_jmx_config_node_manager.yaml
 
 HADOOP_CONF='/etc/hadoop/conf.empty'
 sudo mkdir -p ${HADOOP_CONF}
@@ -36,7 +36,7 @@ sudo cp yarn_jmx_config_resource_manager.yaml ${HADOOP_CONF}
 sudo cp yarn_jmx_config_node_manager.yaml ${HADOOP_CONF}
 
 #set up after_provision_action.sh script to be executed after applications are provisioned. This is needed so as to set up jmx exporter for some applications.
-wget https://aws-bigdata-blog.s3.amazonaws.com/artifacts/aws-blog-emr-prometheus-grafana/scripts/after_provision_action.sh
+wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/scripts/after_provision_action.sh
 sudo chmod +x /tmp/after_provision_action.sh
 sudo sed 's/null &/null \&\& \/tmp\/after_provision_action.sh >> $STDOUT_LOG 2>> $STDERR_LOG \&\n/' /usr/share/aws/emr/node-provisioner/bin/provision-node > /tmp/provision-node.new
 sudo cp /tmp/provision-node.new /usr/share/aws/emr/node-provisioner/bin/provision-node
