@@ -49,11 +49,24 @@ PROMETHEUS_SG=$(aws cloudformation describe-stack-resources \
   --logical-resource-id PrometheusServerSecurityGroup \
   --query 'StackResources[0].PhysicalResourceId' --output text)
 
+# 기존 EMR 클러스터에서 추가 보안 그룹 ID 확인
+EXISTING_CLUSTER_ID=$(aws cloudformation describe-stacks --stack-name $STACK_NAME \
+  --query 'Stacks[0].Outputs[?OutputKey==`ClusterId`].OutputValue' --output text)
+
+ADDITIONAL_MASTER_SG=$(aws emr describe-cluster --cluster-id $EXISTING_CLUSTER_ID --region us-east-1 \
+  --query 'Cluster.Ec2InstanceAttributes.AdditionalMasterSecurityGroups[0]' --output text)
+
+ADDITIONAL_SLAVE_SG=$(aws emr describe-cluster --cluster-id $EXISTING_CLUSTER_ID --region us-east-1 \
+  --query 'Cluster.Ec2InstanceAttributes.AdditionalSlaveSecurityGroups[0]' --output text)
+
 echo "=== 기존 시스템 정보 ==="
 echo "VPC ID: $VPC_ID"
 echo "Subnet ID: $SUBNET_ID" 
 echo "Key Name: $KEY_NAME"
 echo "Prometheus SG: $PROMETHEUS_SG"
+echo "기존 클러스터 ID: $EXISTING_CLUSTER_ID"
+echo "추가 마스터 SG: $ADDITIONAL_MASTER_SG"
+echo "추가 슬레이브 SG: $ADDITIONAL_SLAVE_SG"
 ```
 
 ### 1.3 기존 Prometheus 서버 IP 확인
@@ -96,12 +109,12 @@ NEW_CLUSTER_ID=$(aws emr create-cluster \
       ]
     }
   ]' \
-  --ec2-attributes KeyName=$KEY_NAME,SubnetId=$SUBNET_ID \
+  --ec2-attributes KeyName=$KEY_NAME,SubnetId=$SUBNET_ID,AdditionalMasterSecurityGroups=$ADDITIONAL_MASTER_SG,AdditionalSlaveSecurityGroups=$ADDITIONAL_SLAVE_SG \
   --service-role EMR_DefaultRole \
   --ec2-attributes InstanceProfile=EMR_EC2_DefaultRole \
   --enable-debugging \
   --log-uri s3://odp-hyeonsup-meterials/emr-logs/ \
-  --tags Key=Name,Value="EMR Spark cluster for monitoring" Key=application,Value="hadoop-spark" \
+  --tags Name=EMR-Spark-Monitoring application=hadoop \
   --region us-east-1 \
   --query 'ClusterId' --output text)
 
@@ -185,8 +198,37 @@ echo "✅ 보안 그룹 규칙 추가 완료"
 
 ## 🔧 4단계: Prometheus 설정 업데이트
 
-### 4.1 새 EMR 클러스터 정보 확인
+### 4.1 새 EMR 클러스터 정보 확인 및 기존 Prometheus 서버 접속 및 설정 업데이트
 ```bash
+# Prometheus 서버에 SSH 접속 (별도 터미널에서 실행)
+echo "다음 명령어로 Prometheus 서버에 접속하세요:"
+echo "ssh -i [키페어.pem] ec2-user@$PROMETHEUS_IP"
+```
+
+```bash
+# 방법 1: 기본 리전 설정 (한 번만 하면 됨)
+aws configure set region us-east-1
+
+# 1. 활성 클러스터 목록 확인
+echo "=== 활성 EMR 클러스터 목록 ==="
+aws emr list-clusters --active --query 'Clusters[].{Name:Name,Id:Id,State:Status.State}' --output table --region us-east-1
+
+# 2. 새로 생성한 클러스터 ID 자동 찾기
+NEW_CLUSTER_ID=$(aws emr list-clusters --active \
+  --query 'Clusters[?Name==`EMR-Spark-Monitoring-Additional`].Id' \
+  --output text --region us-east-1)
+
+echo "찾은 클러스터 ID: $NEW_CLUSTER_ID"
+
+# 3. 클러스터 ID 확인
+if [ -z "$NEW_CLUSTER_ID" ]; then
+    echo "❌ 클러스터를 찾을 수 없습니다. 수동으로 설정하세요:"
+    echo "NEW_CLUSTER_ID=\"j-1YJ0MQYXWPKFR\""
+    exit 1
+else
+    echo "✅ 클러스터 ID 자동 설정 완료: $NEW_CLUSTER_ID"
+fi
+
 # 새 EMR 마스터 노드 DNS 확인
 NEW_EMR_MASTER_DNS=$(aws emr describe-cluster --cluster-id $NEW_CLUSTER_ID \
   --query 'Cluster.MasterPublicDnsName' --output text)
@@ -200,14 +242,9 @@ echo "새 EMR 마스터 DNS: $NEW_EMR_MASTER_DNS"
 echo "새 EMR 코어 노드 DNS: $NEW_EMR_CORE_DNS"
 ```
 
-### 4.2 기존 Prometheus 서버 접속 및 설정 업데이트
-```bash
-# Prometheus 서버에 SSH 접속 (별도 터미널에서 실행)
-echo "다음 명령어로 Prometheus 서버에 접속하세요:"
-echo "ssh -i [키페어.pem] ec2-user@$PROMETHEUS_IP"
-```
 
-### 4.3 Prometheus 설정 파일 업데이트 (Prometheus 서버에서 실행)
+
+### 4.2 Prometheus 설정 파일 업데이트 (Prometheus 서버에서 실행)
 ```bash
 # Prometheus 서버에 SSH 접속 후 실행
 sudo cp /etc/prometheus/conf/prometheus.yml /etc/prometheus/conf/prometheus.yml.backup
@@ -228,7 +265,7 @@ sudo tee -a /etc/prometheus/conf/prometheus.yml > /dev/null <<EOF
     static_configs:
 EOF
 
-# 코어 노드들을 동적으로 추가
+# 7. for 문으로 코어 노드들 추가
 for core_dns in $NEW_EMR_CORE_DNS; do
 sudo tee -a /etc/prometheus/conf/prometheus.yml > /dev/null <<EOF
       - targets: ['${core_dns}:7001', '${core_dns}:9100']
@@ -237,6 +274,12 @@ sudo tee -a /etc/prometheus/conf/prometheus.yml > /dev/null <<EOF
           node_type: 'core'
 EOF
 done
+
+# 8. 결과 확인
+echo ""
+echo "=== 추가된 설정 확인 ==="
+tail -20 /etc/prometheus/conf/prometheus.yml
+
 
 # Prometheus 재시작
 sudo systemctl restart prometheus
@@ -251,24 +294,62 @@ echo "✅ Prometheus 설정 업데이트 완료"
 
 ### 5.1 Prometheus 타겟 상태 확인
 ```bash
-# Prometheus UI에서 타겟 확인 (브라우저에서 접속)
-echo "Prometheus UI: http://$PROMETHEUS_IP:9090/targets"
-echo "새 EMR 클러스터 타겟들이 UP 상태인지 확인하세요."
+# 방법 1: 로컬호스트에서 API 확인 (권장)
+echo "=== 새 EMR 클러스터 타겟 상태 확인 ==="
+curl -s "http://localhost:9090/api/v1/targets" | \
+  grep -A 10 -B 5 "emr-spark-additional"
 
-# API로 타겟 상태 확인
-curl -s "http://$PROMETHEUS_IP:9090/api/v1/targets" | \
-  jq '.data.activeTargets[] | select(.labels.cluster=="emr-spark-additional") | {job: .labels.job, instance: .labels.instance, health: .health}'
+echo ""
+echo "=== 모든 job 목록 확인 ==="
+curl -s "http://localhost:9090/api/v1/targets" | \
+  grep -o '"job":"[^"]*"' | sort | uniq
+
+# 방법 2: 브라우저 접속용 IP 확인 (선택사항)
+# 외부 서비스를 통한 퍼블릭 IP 확인
+PROMETHEUS_IP=$(curl -s https://checkip.amazonaws.com)
+echo "Prometheus UI: http://$PROMETHEUS_IP:9090/targets"
+echo "※ 보안 그룹에서 9090 포트가 허용되어야 접속 가능합니다."
 ```
 
 ### 5.2 메트릭 수집 확인
 ```bash
-# 새 클러스터 메트릭 수집 확인
-curl -s "http://$PROMETHEUS_IP:9090/api/v1/query?query=up{cluster='emr-spark-additional'}" | \
-  jq '.data.result[] | {instance: .metric.instance, value: .value[1]}'
+# 새 클러스터 메트릭 수집 확인 (POST 방식 사용)
+echo "=== 새 EMR 클러스터 UP 상태 확인 ==="
+curl -s -X POST "http://localhost:9090/api/v1/query" \
+  -d "query=up{cluster_id=\"emr-spark-additional\"}" | \
+  grep -o '"instance":"[^"]*"'
 
-# HDFS 메트릭 확인
-curl -s "http://$PROMETHEUS_IP:9090/api/v1/query?query=hadoop_namenode_capacitytotal{cluster='emr-spark-additional'}" | \
-  jq '.data.result[0].value[1]'
+echo ""
+echo "=== 모든 클러스터 cluster_id 라벨 확인 ==="
+curl -s "http://localhost:9090/api/v1/query?query=up" | \
+  grep -o '"cluster_id":"[^"]*"' | sort | uniq
+
+echo ""
+echo "=== 새 클러스터 타겟 개수 확인 ==="
+INSTANCES=$(curl -s -X POST "http://localhost:9090/api/v1/query" \
+  -d "query=up{cluster_id=\"emr-spark-additional\"}" | \
+  grep -o '"instance":"[^"]*"')
+TARGET_COUNT=$(echo "$INSTANCES" | wc -l)
+echo "새 EMR 클러스터에서 $TARGET_COUNT 개의 타겟이 메트릭 수집 중"
+echo "예상: 6개 (마스터 2개 + 코어노드1 2개 + 코어노드2 2개)"
+echo ""
+echo "=== 수집 중인 인스턴스 목록 ==="
+echo "$INSTANCES"
+
+# 간단한 방법: 모든 up 메트릭에서 새 클러스터 확인
+echo ""
+echo "=== 간단한 확인 방법 ==="
+curl -s "http://localhost:9090/api/v1/query?query=up" | \
+  grep -A 2 -B 2 "emr-spark-additional" | \
+  grep -c '"value":\["[^"]*","1"\]'
+echo "개의 새 EMR 타겟이 UP 상태"
+
+# HDFS 메트릭 확인 (POST 방식)
+echo ""
+echo "=== HDFS 메트릭 수집 확인 ==="
+curl -s -X POST "http://localhost:9090/api/v1/query" \
+  -d "query=hadoop_namenode_capacity_total{cluster_id=\"emr-spark-additional\"}" | \
+  grep -o '"value":\["[^"]*","[^"]*"\]' || echo "HDFS 메트릭 아직 수집되지 않음 (정상 - 시간이 더 필요할 수 있음)"
 ```
 
 ### 5.3 Grafana에서 확인
