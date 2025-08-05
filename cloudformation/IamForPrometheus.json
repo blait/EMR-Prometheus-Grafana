@@ -43,6 +43,24 @@
 							"Effect": "Allow",
 							"Action": "sns:Publish",
 							"Resource": "arn:aws:sns:*:*:Prometheus"
+						},
+						{
+							"Effect": "Allow",
+							"Action": [
+								"elasticmapreduce:DescribeCluster",
+								"elasticmapreduce:ListClusters", 
+								"elasticmapreduce:ListInstances",
+								"elasticmapreduce:ListInstanceGroups",
+								"elasticmapreduce:ListBootstrapActions",
+								"elasticmapreduce:ListSteps",
+								"elasticmapreduce:DescribeStep"
+							],
+							"Resource": "*",
+							"Condition": {
+								"StringEquals": {
+									"aws:RequestedRegion": "us-east-1"
+								}
+							}
 						}
 					]
 
