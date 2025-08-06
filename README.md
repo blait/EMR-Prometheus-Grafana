@@ -1,6 +1,9 @@
 # EMR Monitoring with Prometheus & Grafana
 
-AWS EMR 클러스터를 Prometheus/Grafana로 모니터링하는 완전한 솔루션입니다.
+AWS EMR 클러스터를 Prometheus/Grafana로 모니터링하는 솔루션입니다.
+
+아래 블로그를 참조 하여 수정하였습니다.
+https://aws.amazon.com/ko/blogs/big-data/monitor-and-optimize-analytic-workloads-on-amazon-emr-with-prometheus-and-grafana/
 
 ## 📋 프로젝트 개요
 
