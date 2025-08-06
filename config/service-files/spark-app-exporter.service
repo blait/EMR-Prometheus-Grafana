@@ -1,0 +1,23 @@
+[Unit]
+Description=Spark Application Metrics Exporter for Prometheus
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=ec2-user
+Group=ec2-user
+WorkingDirectory=/opt/spark-app-exporter
+ExecStart=/usr/bin/python3 /opt/spark-app-exporter/spark_app_exporter.py --yarn-host localhost --port 8081 --interval 30
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=spark-app-exporter
+
+# Environment variables
+Environment=PYTHONPATH=/opt/spark-app-exporter
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target

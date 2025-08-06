@@ -85,7 +85,7 @@ echo "Prometheus 서버 IP: $PROMETHEUS_IP"
 
 ### 2.1 EMR 클러스터 생성 명령어
 ```bash
-# 새 EMR 클러스터 생성 (Hadoop + Spark 포함)
+# 새 EMR 클러스터 생성 (Hadoop + Spark 포함, Event Log 활성화)
 NEW_CLUSTER_ID=$(aws emr create-cluster \
   --name "EMR-Spark-Monitoring-Additional" \
   --release-label emr-6.0.0 \
@@ -107,11 +107,20 @@ NEW_CLUSTER_ID=$(aws emr create-cluster \
           }
         }
       ]
+    },
+    {
+      "Classification": "spark-defaults",
+      "Properties": {
+        "spark.eventLog.enabled": "true",
+        "spark.eventLog.dir": "hdfs:///var/log/spark/apps",
+        "spark.history.fs.logDirectory": "hdfs:///var/log/spark/apps",
+        "spark.sql.adaptive.enabled": "true",
+        "spark.sql.adaptive.coalescePartitions.enabled": "true"
+      }
     }
   ]' \
-  --ec2-attributes KeyName=$KEY_NAME,SubnetId=$SUBNET_ID,AdditionalMasterSecurityGroups=$ADDITIONAL_MASTER_SG,AdditionalSlaveSecurityGroups=$ADDITIONAL_SLAVE_SG \
+  --ec2-attributes KeyName=$KEY_NAME,SubnetId=$SUBNET_ID,InstanceProfile=EMR_EC2_DefaultRole,AdditionalMasterSecurityGroups=$ADDITIONAL_MASTER_SG,AdditionalSlaveSecurityGroups=$ADDITIONAL_SLAVE_SG \
   --service-role EMR_DefaultRole \
-  --ec2-attributes InstanceProfile=EMR_EC2_DefaultRole \
   --enable-debugging \
   --log-uri s3://odp-hyeonsup-meterials/emr-logs/ \
   --tags Name=EMR-Spark-Monitoring application=hadoop \
@@ -119,6 +128,8 @@ NEW_CLUSTER_ID=$(aws emr create-cluster \
   --query 'ClusterId' --output text)
 
 echo "새 클러스터 ID: $NEW_CLUSTER_ID"
+echo "키 페어: $KEY_NAME 사용으로 SSH 접속 가능"
+echo "Spark UI: https://p-$(echo $NEW_CLUSTER_ID | tr '[:upper:]' '[:lower:]' | sed 's/j-//').emrappui-prod.us-east-1.amazonaws.com/shs/"
 ```
 
 ### 2.2 클러스터 생성 상태 확인
@@ -145,6 +156,25 @@ done
 aws emr describe-cluster --cluster-id $NEW_CLUSTER_ID \
   --query 'Cluster.{Name:Name,State:Status.State,MasterDns:MasterPublicDnsName}' \
   --output table
+```
+
+### 2.3 SSH 접속 확인 (선택사항)
+```bash
+# 마스터 노드 DNS 확인
+NEW_EMR_MASTER_DNS=$(aws emr describe-cluster --cluster-id $NEW_CLUSTER_ID \
+  --query 'Cluster.MasterPublicDnsName' --output text --region us-east-1)
+
+echo "=== SSH 접속 정보 ==="
+echo "마스터 노드: $NEW_EMR_MASTER_DNS"
+echo "키 페어: $KEY_NAME"
+echo "SSH 명령어: ssh -i ~/.ssh/$KEY_NAME.pem hadoop@$NEW_EMR_MASTER_DNS"
+
+# SSH 접속 테스트 (선택사항)
+echo "SSH 접속을 테스트하려면 다음 명령어를 사용하세요:"
+echo "ssh -i ~/.ssh/$KEY_NAME.pem hadoop@$NEW_EMR_MASTER_DNS"
+echo ""
+echo "⚠️  주의: 키 파일 권한 설정이 필요할 수 있습니다:"
+echo "chmod 400 ~/.ssh/$KEY_NAME.pem"
 ```
 
 ---
