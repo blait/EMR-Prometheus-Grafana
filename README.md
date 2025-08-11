@@ -25,8 +25,9 @@ https://aws.amazon.com/ko/blogs/big-data/monitor-and-optimize-analytic-workloads
 
 메인 CloudFormation 템플릿 하나로 전체 인프라를 배포할 수 있습니다:
 
-(새 계정일 경우 cf 생성 전에 파라미터로 넣을 vpc, subnet, keypair, emr default role 의 생성이 필요합니다. )
-(emr default role 생성 cli -> aws emr create-default-roles)
+(새 계정일 경우 cf 생성 전에 파라미터로 넣을 vpc, subnet, keypair, *emr default role 의 생성이 필요합니다. )
+
+(*emr default role 생성 cli -> aws emr create-default-roles)
 
 ```bash
 aws cloudformation create-stack \
