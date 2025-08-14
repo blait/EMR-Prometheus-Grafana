@@ -3,24 +3,9 @@
 #set up node_exporter for pushing OS level metrics
 sudo useradd --no-create-home --shell /bin/false node_exporter
 cd /tmp
-
-# 아키텍처 동적 감지
-ARCH=$(uname -m)
-if [ "$ARCH" = "aarch64" ]; then
-    ARCH="arm64"
-elif [ "$ARCH" = "x86_64" ]; then
-    ARCH="amd64"
-else
-    echo "Unsupported architecture: $ARCH"
-    exit 1
-fi
-
-echo "Detected architecture: $ARCH"
-
-# 동적 아키텍처로 Node Exporter 다운로드
-wget https://github.com/prometheus/node_exporter/releases/download/v1.0.0/node_exporter-1.0.0.linux-${ARCH}.tar.gz
-tar -xvzf node_exporter-1.0.0.linux-${ARCH}.tar.gz
-cd node_exporter-1.0.0.linux-${ARCH}
+wget https://github.com/prometheus/node_exporter/releases/download/v1.0.0/node_exporter-1.0.0.linux-amd64.tar.gz
+tar -xvzf node_exporter-1.0.0.linux-amd64.tar.gz
+cd node_exporter-1.0.0.linux-amd64
 sudo cp node_exporter /usr/local/bin/
 sudo chown node_exporter:node_exporter /usr/local/bin/node_exporter
 
@@ -50,10 +35,11 @@ sudo cp hdfs_jmx_config_datanode.yaml ${HADOOP_CONF}
 sudo cp yarn_jmx_config_resource_manager.yaml ${HADOOP_CONF}
 sudo cp yarn_jmx_config_node_manager.yaml ${HADOOP_CONF}
 
-#set up after_provision_action.sh script to be executed after applications are provisioned. This is needed so as to set up jmx exporter for some applications.
+# Download after_provision_action script for manual execution if needed
 wget https://odp-hyeonsup-meterials.s3.amazonaws.com/emr-monitoring/scripts/after_provision_action.sh
 sudo chmod +x /tmp/after_provision_action.sh
-sudo sed 's/null &/null \&\& \/tmp\/after_provision_action.sh >> $STDOUT_LOG 2>> $STDERR_LOG \&\n/' /usr/share/aws/emr/node-provisioner/bin/provision-node > /tmp/provision-node.new
-sudo cp /tmp/provision-node.new /usr/share/aws/emr/node-provisioner/bin/provision-node
+
+# NOTE: Removed provision-node modification for EMR 7.8 compatibility test
+# YARN JMX metrics may not work without manual configuration
 
 exit 0
