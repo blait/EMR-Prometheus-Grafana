@@ -3,6 +3,9 @@
 ## 개요
 EMR 인스턴스의 Name 태그 값을 Prometheus 메트릭에 추가하여 Grafana 대시보드에서 클러스터 이름으로 선택할 수 있도록 설정합니다.
 
+<img width="1339" height="360" alt="image" src="https://github.com/user-attachments/assets/da84ffd3-9047-4ce4-917b-75a5f5cb85cb" />
+
+
 ## 현재 상태
 - 대시보드 변수: `job`, `cluster_id`, `instance`
 - 목표: `cluster_name` 변수 추가 (Name 태그 기반)
